@@ -1,0 +1,266 @@
+{
+  "info": {
+    "_postman_id": "815c1527-0217-5f0e-b5c0-c2a9d5c1148d",
+    "name": "ImmoAnalyse.Pro API",
+    "description": "ImmoAnalyse.Pro Bewertungs-API (OpenAPI 1.11).\n\nSet the collection variable `apiKey` to your own key. Never share a collection or environment that contains a real key. Server-to-server use only.\n\nDocs: https://immoanalyse.pro/api-docs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://immoanalyse.pro/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "",
+      "type": "string",
+      "description": "Your ImmoAnalyse.Pro API key (iap_live_…). Leave empty in shared copies."
+    },
+    {
+      "key": "requestId",
+      "value": "",
+      "type": "string",
+      "description": "Filled automatically by POST /valuation."
+    }
+  ],
+  "item": [
+    {
+      "name": "POST /valuation – Immobilie bewerten",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/valuation",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "valuation"
+          ]
+        },
+        "description": "Immobilie bewerten\n\nZählt auf das Monatskontingent. Identische Anfragen desselben Schlüssels innerhalb von 10 Minuten werden aus dem Zwischenspeicher beantwortet (`cached: true`) und zählen nicht erneut.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"adresse\": \"Suderwichstraße 143\",\n  \"plz\": \"45665\",\n  \"ort\": \"Recklinghausen\",\n  \"haustyp\": \"mfh\",\n  \"baujahr\": 1965,\n  \"wohnflaeche\": 320,\n  \"grundstuecksflaeche\": 1668,\n  \"kaltmiete\": 1800,\n  \"zustandSterne\": 3,\n  \"zustand\": \"modernisiert\",\n  \"energieklasse\": \"E\",\n  \"kaufpreis\": 400000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Store request_id for GET /result/{request_id}",
+              "try { const j = pm.response.json(); if (j.request_id) pm.collectionVariables.set('requestId', j.request_id); } catch (e) {}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST /address-lookup – Adresse normalisieren und geocodieren",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/address-lookup",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "address-lookup"
+          ]
+        },
+        "description": "Adresse normalisieren und geocodieren\n\nEigenes Monatskontingent je Tarif. Erfolgreiche Geocoding-Ergebnisse werden 30 Tage gespeichert; PLZ-Mittelpunkte nicht. Gespeicherte Wiederholungen zählen nicht, werden bei ausgeschöpftem Kontingent derzeit aber ebenfalls mit 402 abgelehnt. Für punktgenaue BORIS-Abfragen nur Koordinaten mit quality = exact verwenden.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"adresse\": \"Suderwichstraße 143, 45665 Recklinghausen\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /schema – Feld-Schema je Objekttyp",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/schema?haustyp=mfh",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "schema"
+          ],
+          "query": [
+            {
+              "key": "haustyp",
+              "value": "mfh",
+              "description": "(required) "
+            }
+          ]
+        },
+        "description": "Feld-Schema je Objekttyp\n\nFelder in Formular-Reihenfolge inkl. Pflichtgrad, Wirkung, Einheit und Optionen. Zählt nicht auf das Kontingent."
+      },
+      "response": []
+    },
+    {
+      "name": "GET /types – Unterstützte Objekttypen",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/types",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "types"
+          ]
+        },
+        "description": "Unterstützte Objekttypen"
+      },
+      "response": []
+    },
+    {
+      "name": "GET /result/{request_id} – Gespeicherte Bewertung erneut abrufen",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/result/:request_id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "result",
+            ":request_id"
+          ],
+          "variable": [
+            {
+              "key": "request_id",
+              "value": "{{requestId}}",
+              "description": ""
+            }
+          ]
+        },
+        "description": "Gespeicherte Bewertung erneut abrufen\n\nLiefert Anfrage und Ergebnis unverändert (reproduzierbar). Zählt nicht auf das Kontingent."
+      },
+      "response": []
+    },
+    {
+      "name": "GET /angebotsmieten – Angebotsmiete einer Gemeinde, optional einer PLZ – mit Stadtteilen und Kaufpreisen",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/angebotsmieten?stadt_slug=recklinghausen&plz=45663&mit_stadtteilen=true",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "angebotsmieten"
+          ],
+          "query": [
+            {
+              "key": "stadt_slug",
+              "value": "recklinghausen",
+              "description": "Gemeinde-Slug, genau einer (z. B. hamburg, recklinghausen, neuenkirchen-steinfurt). Gleichnamige Gemeinden tragen den Kreis im Slug. Pflicht, wenn keine plz gesetzt ist."
+            },
+            {
+              "key": "plz",
+              "value": "45663",
+              "description": "Optional zusammen mit stadt_slug; allein bestimmt sie die Gemeinde. Ohne Inserate: fallzahl 0 und keine Mietwerte."
+            },
+            {
+              "key": "mit_stadtteilen",
+              "value": "true",
+              "description": "Optional. true ergänzt Kaufpreise, Lage-Index und stadtteile. Mit plz nur die Stadtteile, die diese PLZ berühren. Ohne Parameter bleibt die Antwort wie bisher."
+            }
+          ]
+        },
+        "description": "Angebotsmiete einer Gemeinde, optional einer PLZ – mit Stadtteilen und Kaufpreisen\n\nLiest den neuesten Monatsstand (Fallzahl, Median, P25, P75, Stand, berechnet_am) für jede Gemeinde in Deutschland. Genau ein stadt_slug oder eine plz: Ohne stadt_slug wird die Gemeinde gewählt, in der der größte Teil der PLZ liegt; gemeinden_der_plz nennt alle Gemeinden der PLZ. Eine Gemeinde oder PLZ ohne Inserate liefert HTTP 200 mit fallzahl 0 und Mietwerten null, keinen Fehler; eine PLZ ohne Gemeinde liefert 404 (plz_not_found). mit_stadtteilen=true ergänzt Gemeindename, Kaufpreise (Eigentumswohnungen), PLZ-Gebietsnamen, Lage-Index und den Block stadtteile (PLZ-Gebiete, Bezirke, Ortsteile). Alle neuen Werte erst ab 10 Inseraten, darunter null bei wahrer Fallzahl. Die bisherigen Mietfelder von stadt und plz bleiben unverändert. Zählt nicht auf das Bewertungskontingent. Cache-Control: private, max-age=86400. Keine Einzelinserate."
+      },
+      "response": []
+    },
+    {
+      "name": "GET /angebotsmieten/liste – Verzeichnis der Gemeinden, PLZ und Stadtteile mit Fallzahl",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/angebotsmieten/liste?stadt_slug=recklinghausen&mit_werten=true",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "angebotsmieten",
+            "liste"
+          ],
+          "query": [
+            {
+              "key": "stadt_slug",
+              "value": "recklinghausen",
+              "description": "Optional. Mehrere Slugs kommagetrennt oder als wiederholter Parameter. Leer = alle Gemeinden und PLZ."
+            },
+            {
+              "key": "mit_werten",
+              "value": "true",
+              "description": "Optional. true liefert je Zeile zusätzlich median_eur_m2, p25_eur_m2 und p75_eur_m2. Ohne Parameter oder false bleibt die Zeile unverändert."
+            },
+            {
+              "key": "mit_stadtteilen",
+              "value": "",
+              "description": "Optional. true hängt die Stadtteile als Zeilen mit ebene stadtteil an (nach den Gemeinden und PLZ).",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Verzeichnis der Gemeinden, PLZ und Stadtteile mit Fallzahl\n\nAlle Zeilen des neuesten Stands für Sitemap und Index-Schalter, ohne Einzelinserate – bundesweit alle Gemeinden und PLZ mit mindestens einem Mietinserat. Ohne mit_werten nur ebene, schluessel, stadt_slug und fallzahl. mit_werten=true hängt je Zeile median_eur_m2, p25_eur_m2 und p75_eur_m2 an (ein Gesamtabruf, kein Paging in der Antwort). mit_stadtteilen=true hängt alle Stadtteile (ebene stadtteil) an; zusammen mit mit_werten auch Lage-Index und Kaufpreise. Für den bundesweiten Gesamtabruf mit Stadtteilen empfiehlt sich der Filter stadt_slug. Optional auf Gemeinde-Slugs filtern (mehrfach oder kommagetrennt). Zählt nicht auf das Bewertungskontingent. Cache-Control: private, max-age=86400."
+      },
+      "response": []
+    }
+  ]
+}
