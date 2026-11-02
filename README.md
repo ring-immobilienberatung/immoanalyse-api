@@ -42,6 +42,7 @@ node examples/javascript/examples.mjs        # Node.js 18+
 
 Postman: import `postman/immoanalyse-api.postman_collection.json` and set the
 collection variable `apiKey`. `baseUrl` is preset to `https://immoanalyse.pro/api/v1`.
+Or fork it from the public workspace: [ImmoAnalyse.Pro API on Postman](https://www.postman.com/immoanalyse-pro-5928227/immoanalyse-pro-api).
 
 Quotas: `/valuation` and `/address-lookup` each have their own monthly quota, and
 the plans include a separate allowance of market-data calls. `/schema` and
